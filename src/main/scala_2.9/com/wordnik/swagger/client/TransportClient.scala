@@ -1,4 +1,4 @@
-package com.wordnik.swaggger.client
+package com.wordnik.swagger.client
 
 import com.ning.http._
 import client._

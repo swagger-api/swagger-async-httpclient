@@ -1,4 +1,4 @@
-package com.wordnik.swaggger.client
+package com.wordnik.swagger.client
 
 import java.io.{FileInputStream, File}
 import org.mozilla.universalchardet.UniversalDetector

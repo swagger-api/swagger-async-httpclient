@@ -1,7 +1,6 @@
-package com.wordnik.swaggger.client
+package com.wordnik.swagger.client
 
-import akka.util.Duration
-import akka.util.duration._
+import scala.concurrent.duration._
 import java.io.StringWriter
 import org.json4s.jackson.JsonMethods
 import SwaggerConfig.DataFormat
@@ -70,3 +69,4 @@ case class SwaggerConfig(
   enableCompression: Boolean = true,
   followRedirects: Boolean = true,
   identity: String = "0")
+

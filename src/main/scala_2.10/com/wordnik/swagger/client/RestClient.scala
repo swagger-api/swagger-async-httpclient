@@ -1,4 +1,4 @@
-package com.wordnik.swaggger.client
+package com.wordnik.swagger.client
 
 import com.ning.http._
 import client._
@@ -11,12 +11,12 @@ import java.nio.charset.Charset
 import java.io.File
 import java.net.URI
 import rl.MapQueryString
-import akka.dispatch.{Promise, ExecutionContext, Future}
-import akka.util.Duration
-import akka.util.duration._
+import scala.concurrent.{Promise, ExecutionContext, Future}
+import scala.concurrent.duration._
 import org.json4s.JsonAST.JValue
 import org.json4s.jackson.JsonMethods
 import java.text.SimpleDateFormat
+import scala.util.{Failure, Success}
 
 
 object RestClient {
@@ -228,7 +228,7 @@ class RestClient(config: SwaggerConfig) extends TransportClient {
     req
   }
 
-  private[this] def addParameters(method: String, params: Iterable[(String, String)], isMultipart: Boolean = false, charset: Charset = Codec.UTF8)(req: AsyncHttpClient#BoundRequestBuilder) = {
+  private[this] def addParameters(method: String, params: Iterable[(String, String)], isMultipart: Boolean = false, charset: Charset = Codec.UTF8.charSet)(req: AsyncHttpClient#BoundRequestBuilder) = {
     method.toUpperCase(Locale.ENGLISH) match {
       case `GET` | `DELETE` | `HEAD` | `OPTIONS` ⇒ params foreach { case (k, v) ⇒ req addQueryParameter (k, v) }
       case `PUT` | `POST`   | `PATCH`            ⇒ {
@@ -334,19 +334,19 @@ class RestClient(config: SwaggerConfig) extends TransportClient {
       andThen executeRequest)(requestUri(URI.create(baseUrl).normalize(), u).toASCIIString)
   }
 
-  private[this] def executeRequest(req: AsyncHttpClient#BoundRequestBuilder) = {
+  private[this] def executeRequest(req: AsyncHttpClient#BoundRequestBuilder): Future[RestClientResponse] = {
     val promise = Promise[RestClientResponse]()
-    req.execute(new AsyncCompletionHandler[Future[ClientResponse]] {
-      override def onThrowable(t: Throwable) = promise.complete(Left(t))
+    req.execute(new AsyncCompletionHandler[Promise[RestClientResponse]] {
+      override def onThrowable(t: Throwable) = promise.complete(Failure(t))
       def onCompleted(response: Response) = {
         if (response.getStatusCode / 100 == 2)
-          promise.complete(Right(new RestClientResponse(response)))
+          promise.complete(Success(new RestClientResponse(response)))
         else {
-          promise.complete(Left(new ApiException(response.getStatusCode, response.getStatusText, response.getResponseBody(Codec.UTF8.name()))))
+          promise.complete(Failure(new ApiException(response.getStatusCode, response.getStatusText, response.getResponseBody(Codec.UTF8.name))))
         }
       }
     })
-    promise
+    promise.future
   }
 
   private[this] def defaultWriteContentType(files: Iterable[(String, File)]) = {

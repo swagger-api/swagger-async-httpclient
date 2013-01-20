@@ -1,4 +1,4 @@
-package com.wordnik.swaggger.client
+package com.wordnik.swagger.client
 
 object ResponseStatus {
   def apply(code: Int): ResponseStatus =

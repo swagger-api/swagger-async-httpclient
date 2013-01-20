@@ -1,7 +1,8 @@
-package com.wordnik.swaggger.client
+package com.wordnik.swagger.client
 
-import akka.dispatch.{Future, Promise}
+import scala.concurrent.{Future, Promise}
 import org.json4s.jackson.JsonMethods
+import util.{Failure, Success, Try}
 
 abstract class ApiClient(client: TransportClient, config: SwaggerConfig) extends JsonMethods {
   protected implicit val execContext = client.execContext
@@ -14,12 +15,12 @@ abstract class ApiClient(client: TransportClient, config: SwaggerConfig) extends
     try {
       val r = fn
       r match {
-        case t: Throwable => fut.complete(Left(t))
-        case s => fut.complete(Right(r))
+        case t: Throwable => fut.complete(Failure(t))
+        case s => fut.complete(Success(s))
       }
     } catch {
-      case t: Throwable => fut.complete(Left(t))
+      case t: Throwable => fut.complete(Failure(t))
     }
-    fut
+    fut.future
   }
 }
