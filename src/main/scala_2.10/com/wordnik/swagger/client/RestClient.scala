@@ -45,6 +45,7 @@ object RestClient {
   }
 
   case class RequestCookie(name: String, value: String, cookieOptions: CookieOptions = CookieOptions()) extends HttpCookie
+
   object DateUtil {
     @volatile private[this] var _currentTimeMillis: Option[Long] = None
     def currentTimeMillis = _currentTimeMillis getOrElse System.currentTimeMillis
@@ -180,7 +181,7 @@ object RestClient {
 
 }
 
-class RestClient(config: SwaggerConfig) extends TransportClient {
+class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
 
   protected val baseUrl: String = config.baseUrl
   protected val clientConfig: AsyncHttpClientConfig = (new AsyncHttpClientConfig.Builder()
@@ -194,16 +195,13 @@ class RestClient(config: SwaggerConfig) extends TransportClient {
   import StringHttpMethod._
   implicit val execContext = ExecutionContext.fromExecutorService(clientConfig.executorService())
 
-  private[this] val mimes = new Mimes {
-    protected def warn(message: String) = System.err.println("[WARN] " + message)
+  private[this] val mimes = new Mimes with Logging {
+    protected def warn(message: String) = logger.warn(message)
   }
 
   private[this] val cookies = new CookieJar(Map.empty)
 
-  private[this] val underlying = new AsyncHttpClient(clientConfig) {
-    def preparePatch(uri: String): AsyncHttpClient#BoundRequestBuilder = requestBuilder(PATCH, uri)
-    def prepareTrace(uri: String): AsyncHttpClient#BoundRequestBuilder = requestBuilder(TRACE, uri)
-  }
+  private[this] val underlying = new AsyncHttpClient(clientConfig)
 
   private[this] def createRequest(method: String): String ⇒ AsyncHttpClient#BoundRequestBuilder = {
     method.toUpperCase(Locale.ENGLISH) match {
@@ -214,8 +212,6 @@ class RestClient(config: SwaggerConfig) extends TransportClient {
       case `HEAD`    ⇒ underlying.prepareHead _
       case `OPTIONS` ⇒ underlying.prepareOptions _
       case `CONNECT` ⇒ underlying.prepareConnect _
-      case `PATCH`   ⇒ underlying.preparePatch _
-      case `TRACE`   ⇒ underlying.prepareTrace _
     }
   }
 
@@ -335,10 +331,12 @@ class RestClient(config: SwaggerConfig) extends TransportClient {
   }
 
   private[this] def executeRequest(req: AsyncHttpClient#BoundRequestBuilder): Future[RestClientResponse] = {
+    logger.debug("Requesting:\n" + req.build())
     val promise = Promise[RestClientResponse]()
     req.execute(new AsyncCompletionHandler[Promise[RestClientResponse]] {
       override def onThrowable(t: Throwable) = promise.complete(Failure(t))
       def onCompleted(response: Response) = {
+        logger.debug(s"Got response [${response.getStatusCode} ${response.getStatusText}}] for request to ${req.build().getUrl}.\n$response")
         if (response.getStatusCode / 100 == 2)
           promise.complete(Success(new RestClientResponse(response)))
         else {

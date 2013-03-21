@@ -11,7 +11,7 @@ abstract class ApiClient(client: TransportClient, config: SwaggerConfig) extends
   protected def addFmt(pth: String) = pth.replace("{format}", ser.name)
 
   protected def process[T](fn: => T): Future[T]  = {
-    val fut = Promise[T]
+    val fut = Promise[T]()
     try {
       val r = fn
       r match {

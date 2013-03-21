@@ -9,20 +9,15 @@ import java.net.{URI, URL}
 object Mimes {
 
   val DefaultMime = "application/octet-stream"
-  /**
+  /*
    * Sets supported encodings for the mime-util library if they have not been
    * set. Since the supported encodings is stored as a static Set we
    * synchronize access.
    */
-  private def registerEncodingsIfNotSet() {
-    synchronized {
-      if (EncodingGuesser.getSupportedEncodings.isEmpty) {
-        val enc = Set("UTF-8", "ISO-8859-1", "windows-1252", "MacRoman", EncodingGuesser.getDefaultEncoding)
-        EncodingGuesser.setSupportedEncodings(enc)
-      }
-    }
+  if (EncodingGuesser.getSupportedEncodings.isEmpty) {
+    val enc = Set("UTF-8", "ISO-8859-1", "windows-1252", "MacRoman", EncodingGuesser.getDefaultEncoding)
+    EncodingGuesser.setSupportedEncodings(enc)
   }
-  registerEncodingsIfNotSet
 }
 
 /**
@@ -32,7 +27,11 @@ trait Mimes {
 
   import Mimes._
 
-  private val mimeUtil = new MimeUtil2()
+  private[this] var _mimeUtil: MimeUtil2 = null
+  protected[this] def mimeUtil: MimeUtil2 = {
+    if (_mimeUtil == null) _mimeUtil = new MimeUtil2()
+    _mimeUtil
+  }
   quiet { mimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector") }
   quiet { mimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.ExtensionMimeDetector") }
 
