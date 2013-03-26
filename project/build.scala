@@ -84,16 +84,20 @@ object build extends Build {
         "org.scalatra.rl" %% "rl" % "0.4.3",
         "org.slf4j" % "slf4j-api" % "1.7.3",
         "ch.qos.logback" % "logback-classic" % "1.0.10" % "provided",
-        "org.json4s" %% "json4s-jackson" % "3.2.0",
+        "org.json4s" %% "json4s-jackson" % "3.2.2",
         "com.googlecode.juniversalchardet" % "juniversalchardet" % "1.0.3",
         "eu.medsea.mimeutil" % "mime-util" % "2.1.3" exclude("org.slf4j", "slf4j-log4j12") exclude("log4j", "log4j"),
         "com.ning" % "async-http-client" % "1.7.9"
       ),
       libraryDependencies <+= scalaVersion {
-        case v if v startsWith "2.9" => "org.clapper" %% "grizzled-slf4j" % "0.6.10"
-        case v => "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
+         case v if v startsWith "2.9" => "org.clapper" %% "grizzled-slf4j" % "0.6.10"
+         case v => "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
       },
-      libraryDependencies <++= scalaVersion {
+      libraryDependencies <+= scalaVersion {
+         case "2.9.3" => "org.scalatra.rl" % "rl_2.9.2" % "0.4.3"
+         case v => "org.scalatra.rl" %% "rl" % "0.4.3"
+       },
+       libraryDependencies <++= scalaVersion {
         case v if v startsWith "2.9" => Seq("com.typesafe.akka" % "akka-actor" % "2.0.5")
         case v => Seq.empty
       },
