@@ -57,6 +57,9 @@ object SwaggerConfig {
 }
 case class SwaggerConfig(
   baseUrl: String,
+  serviceName: String,
+  servicePort: String = "8000",
+  basePath: String = "/api",
   userAgent: String = RestClient.DefaultUserAgent,
   dataFormat: SwaggerConfig.DataFormat = DataFormat.Json(DefaultFormats),
   idleTimeout: Duration = 5 minutes,

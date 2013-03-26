@@ -21,15 +21,8 @@ object build extends Build {
   }
 
   val publishSettings: Seq[Setting[_]] = Seq(
-    publishTo <<= (version) { version: String =>
-      val res =
-        if (version.trim.endsWith("SNAPSHOT"))
-          Opts.resolver.sonatypeSnapshots
-        else
-          Opts.resolver.sonatypeStaging
-      Some(res)
-    },
     publishMavenStyle := true,
+    publishTo := Some(Resolver.url("CI Server", url("https://ci.aws.wordnik.com/artifactory/m2-releases/"))),
     publishArtifact in Test := false,
     pomIncludeRepository := { x => false }
   )
@@ -43,7 +36,9 @@ object build extends Build {
   val projectSettings = Seq(
     organization := "com.wordnik.swagger",
     name := "swagger-async-httpclient",
-    scalaVersion := "2.10.0",
+    scalaVersion := "2.9.2",
+    resolvers += "CI Server" at "https://ci.aws.wordnik.com/artifactory/m2-releases/",
+    resolvers += "Typesafe releases" at "http://repo.typesafe.com/typesafe/releases/",
     crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.9.3", "2.10.0"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-optimize", "-Xcheckinit", "-encoding", "utf8", "-P:continuations:enable"),
     scalacOptions in Compile <++= scalaVersion map ({
@@ -63,7 +58,9 @@ object build extends Build {
     TaskKey[Unit]("gc", "runs garbage collector") <<= streams map { s =>
       s.log.info("requesting garbage collection")
       System.gc()
-    }
+    },
+    credentials ++= Seq(
+      Credentials("CI Server", "ci.aws.wordnik.com", "mavenuser", "DEEaffe987a"))
   )
 
   val buildInfoConfig: Seq[Setting[_]] = buildInfoSettings ++ Seq(
@@ -87,20 +84,26 @@ object build extends Build {
         "org.json4s" %% "json4s-jackson" % "3.2.2",
         "com.googlecode.juniversalchardet" % "juniversalchardet" % "1.0.3",
         "eu.medsea.mimeutil" % "mime-util" % "2.1.3" exclude("org.slf4j", "slf4j-log4j12") exclude("log4j", "log4j"),
-        "com.ning" % "async-http-client" % "1.7.9"
+        "com.ning" % "async-http-client" % "1.7.9",
+        "com.wordnik" % "discovery-service-sdk_2.9.2" % "1.4.3" exclude("com.wordnik", "utils-common_2.9.2"),
+        "com.wordnik" % "utils-common_2.9.2" % "1.7.1"
       ),
+
       libraryDependencies <+= scalaVersion {
          case v if v startsWith "2.9" => "org.clapper" %% "grizzled-slf4j" % "0.6.10"
          case v => "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
       },
+
       libraryDependencies <+= scalaVersion {
          case "2.9.3" => "org.scalatra.rl" % "rl_2.9.2" % "0.4.3"
          case v => "org.scalatra.rl" %% "rl" % "0.4.3"
        },
-       libraryDependencies <++= scalaVersion {
+
+      libraryDependencies <++= scalaVersion {
         case v if v startsWith "2.9" => Seq("com.typesafe.akka" % "akka-actor" % "2.0.5")
         case v => Seq.empty
       },
+
       versionSpecificSourcesIn(Compile)
     )
   )
