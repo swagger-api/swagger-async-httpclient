@@ -162,12 +162,7 @@ object RestClient {
 
     val uri = response.getUri
 
-    private[this] var _body: JValue = null
-
-    def body = {
-      if (_body == null) _body = JsonMethods.parse(inputStream, useBigDecimalForDouble = true)
-      _body
-    }
+    def body = response.getResponseBody(charset getOrElse "UTF-8")
 
     def mediaType: Option[String] = headers.get("Content-Type") flatMap { _.headOption }
 
@@ -187,6 +182,7 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
   protected val clientConfig: AsyncHttpClientConfig = (new AsyncHttpClientConfig.Builder()
     setUserAgent config.userAgent
     setRequestTimeoutInMs config.idleTimeout.toMillis.toInt
+    setConnectionTimeoutInMs config.connectTimeout.toMillis.toInt
     setCompressionEnabled config.enableCompression               // enable content-compression
     setAllowPoolingConnection true                               // enable http keep-alive
     setFollowRedirects config.followRedirects).build()

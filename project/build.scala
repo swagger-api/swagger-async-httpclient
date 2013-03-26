@@ -23,7 +23,10 @@ object build extends Build {
   val publishSettings: Seq[Setting[_]] = Seq(
     publishTo <<= (version) { version: String =>
       val res =
-        if (version.trim.endsWith("SNAPSHOT")) Opts.resolver.sonatypeSnapshots else Opts.resolver.sonatypeStaging
+        if (version.trim.endsWith("SNAPSHOT"))
+          Opts.resolver.sonatypeSnapshots
+        else
+          Opts.resolver.sonatypeStaging
       Some(res)
     },
     publishMavenStyle := true,
@@ -41,7 +44,7 @@ object build extends Build {
     organization := "com.wordnik.swagger",
     name := "swagger-async-httpclient",
     scalaVersion := "2.10.0",
-    crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.10.0"),
+    crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.9.3", "2.10.0"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-optimize", "-Xcheckinit", "-encoding", "utf8", "-P:continuations:enable"),
     scalacOptions in Compile <++= scalaVersion map ({
       case v if v startsWith "2.10" => Seq("-language:implicitConversions", "-language:reflectiveCalls")
@@ -89,6 +92,10 @@ object build extends Build {
       libraryDependencies <+= scalaVersion {
         case v if v startsWith "2.9" => "org.clapper" %% "grizzled-slf4j" % "0.6.10"
         case v => "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
+      },
+      libraryDependencies <++= scalaVersion {
+        case v if v startsWith "2.9" => Seq("com.typesafe.akka" % "akka-actor" % "2.0.5")
+        case v => Seq.empty
       },
       versionSpecificSourcesIn(Compile)
     )

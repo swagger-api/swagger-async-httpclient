@@ -17,7 +17,6 @@ object SwaggerConfig {
 
     def serialize[T](obj: T): String
     def deserialize[T:Manifest](json: String): T
-    def deserialize[T:Manifest](json: JValue): T
   }
   object DataFormat {
     object Json {
@@ -26,12 +25,8 @@ object SwaggerConfig {
     class Json(fmts: Formats) extends DataFormat {
       implicit protected val jsonFormats: Formats = fmts
       val contentType: String = "application/json;charset=utf-8"
-
       val name: String = "json"
-
-      def deserialize[T: Manifest](json: String): T = JsonMethods.parse(json, useBigDecimalForDouble = true).extract[T]
-      def deserialize[T: Manifest](json: JValue): T = json.extract[T]
-
+      def deserialize[T: Manifest](json: String): T = JsonMethods.parse(json, fmts.wantsBigDecimal).extract[T]
       def serialize[T](obj: T): String = JsonMethods.compact(JsonMethods.render(Extraction.decompose(obj)))
     }
 
@@ -48,7 +43,6 @@ object SwaggerConfig {
         val JObject(JField(_, jv) :: Nil) = toJson(scala.xml.XML.loadString(json))
         jv.extract[T]
       }
-      def deserialize[T: Manifest](json: JValue): T = json.extract[T]
 
       protected lazy val xmlRootNode = <resp></resp>
 
@@ -66,6 +60,7 @@ case class SwaggerConfig(
   userAgent: String = RestClient.DefaultUserAgent,
   dataFormat: SwaggerConfig.DataFormat = DataFormat.Json(DefaultFormats),
   idleTimeout: Duration = 5 minutes,
+  connectTimeout: Duration = 5 seconds,
   maxMessageSize: Int = 8912,
   enableCompression: Boolean = true,
   followRedirects: Boolean = true,

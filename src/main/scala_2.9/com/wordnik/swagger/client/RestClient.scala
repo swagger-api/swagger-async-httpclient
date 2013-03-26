@@ -161,12 +161,7 @@ object RestClient {
 
     val uri = response.getUri
 
-    private[this] var _body: JValue = null
-
-    def body = {
-      if (_body == null) _body = JsonMethods.parse(inputStream, useBigDecimalForDouble = true)
-      _body
-    }
+    def body = response.getResponseBody(charset getOrElse "UTF-8")
 
     def mediaType: Option[String] = headers.get("Content-Type") flatMap { _.headOption }
 
@@ -180,12 +175,13 @@ object RestClient {
 
 }
 
-class RestClient(config: SwaggerConfig) extends TransportClient {
+class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
 
   protected val baseUrl: String = config.baseUrl
   protected val clientConfig: AsyncHttpClientConfig = (new AsyncHttpClientConfig.Builder()
     setUserAgent config.userAgent
     setRequestTimeoutInMs config.idleTimeout.toMillis.toInt
+    setConnectionTimeoutInMs config.connectTimeout.toMillis.toInt
     setCompressionEnabled config.enableCompression               // enable content-compression
     setAllowPoolingConnection true                               // enable http keep-alive
     setFollowRedirects config.followRedirects).build()
@@ -195,7 +191,7 @@ class RestClient(config: SwaggerConfig) extends TransportClient {
   implicit val execContext = ExecutionContext.fromExecutorService(clientConfig.executorService())
 
   private[this] val mimes = new Mimes {
-    protected def warn(message: String) = System.err.println("[WARN] " + message)
+    protected def warn(message: String) = logger.warn(message)
   }
 
   private[this] val cookies = new CookieJar(Map.empty)
@@ -335,10 +331,12 @@ class RestClient(config: SwaggerConfig) extends TransportClient {
   }
 
   private[this] def executeRequest(req: AsyncHttpClient#BoundRequestBuilder) = {
+    logger.debug("Requesting:\n" + req.build())
     val promise = Promise[RestClientResponse]()
     req.execute(new AsyncCompletionHandler[Future[ClientResponse]] {
       override def onThrowable(t: Throwable) = promise.complete(Left(t))
       def onCompleted(response: Response) = {
+        logger.debug("Got response ["+response.getStatusCode+" "+response.getStatusText+"] for request to "+req.build().getUrl+".\n"+response)
         if (response.getStatusCode / 100 == 2)
           promise.complete(Right(new RestClientResponse(response)))
         else {

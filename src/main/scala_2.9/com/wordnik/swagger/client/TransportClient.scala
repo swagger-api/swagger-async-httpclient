@@ -19,7 +19,7 @@ trait ClientResponse {
   def uri: URI
   def statusCode: Int = status.code
   def statusText: String = status.line
-  def body: JValue
+  def body: String
 
 }
 
