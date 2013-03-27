@@ -90,14 +90,11 @@ object build extends Build {
         "com.ning" % "async-http-client" % "1.7.9"
       ),
       libraryDependencies <+= scalaVersion {
+         case "2.9.3" => "org.clapper" % "grizzled-slf4j_2.9.2" % "0.6.10" exclude("org.scala-lang", "scala-library")
          case v if v startsWith "2.9" => "org.clapper" %% "grizzled-slf4j" % "0.6.10"
          case v => "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
       },
-      libraryDependencies <+= scalaVersion {
-         case "2.9.3" => "org.scalatra.rl" % "rl_2.9.2" % "0.4.3"
-         case v => "org.scalatra.rl" %% "rl" % "0.4.3"
-       },
-       libraryDependencies <++= scalaVersion {
+      libraryDependencies <++= scalaVersion {
         case v if v startsWith "2.9" => Seq("com.typesafe.akka" % "akka-actor" % "2.0.5")
         case v => Seq.empty
       },
