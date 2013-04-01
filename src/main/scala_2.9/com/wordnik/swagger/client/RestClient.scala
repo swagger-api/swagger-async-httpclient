@@ -175,10 +175,10 @@ object RestClient {
 
 }
 
-class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
+class RestClient(config: SwaggerConfig, isDiscoveryEnabled:Boolean=true, serviceIp:String="localhost") extends TransportClient with Logging {
 
   protected val baseUrl: String = config.baseUrl
-  protected val serviceLocator = new ServiceLocator
+  protected val serviceLocator = if (isDiscoveryEnabled)new ServiceLocator else new IPBasedServiceLocator(serviceIp)
   protected val clientConfig: AsyncHttpClientConfig = (new AsyncHttpClientConfig.Builder()
     setUserAgent config.userAgent
     setRequestTimeoutInMs config.idleTimeout.toMillis.toInt

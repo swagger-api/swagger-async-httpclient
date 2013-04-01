@@ -15,6 +15,13 @@ class SwaggerConfigurator extends ServiceConfigurator {
   def configure(configString: String) {}
 }
 
+class IPBasedServiceLocator(serviceIp:String) extends ServiceLocator {
+
+  override def getServerInstance(serviceName:String):String = {
+    serviceIp
+  }
+}
+
 class ServiceLocator {
 
   val LOGGER = Logger.getLogger(this.getClass)
