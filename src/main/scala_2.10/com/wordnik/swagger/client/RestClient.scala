@@ -303,7 +303,10 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
   private[this] def requestUri(base: URI, u: URI) = if (u.isAbsolute) u else {
     // There is no constructor on java.net.URI that will not encode the path
     // except for the one where you pass in a uri as string so we're concatenating ourselves
-    val b = "%s://%s:%d".format(base.getScheme, base.getHost, base.getPort)
+    val prt = base.getPort
+    val b =
+      if (prt > 0 && prt != 80 && prt != 443) "%s://%s:%d".format(base.getScheme, base.getHost, prt)
+      else "%s://%s".format(base.getScheme, base.getHost)
     val p = base.getRawPath + u.getRawPath.blankOption.getOrElse("/")
     val q = u.getRawQuery.blankOption.map("?"+_).getOrElse("")
     val f = u.getRawFragment.blankOption.map("#"+_).getOrElse("")

@@ -2,6 +2,7 @@ import sbt._
 import Keys._
 import sbtrelease.ReleasePlugin._
 import sbtbuildinfo.Plugin._
+import scala.xml.Group
 
 object build extends Build {
 
@@ -34,6 +35,25 @@ object build extends Build {
     pomIncludeRepository := { x => false }
   )
 
+  val mavenCentralFrouFrou = Seq(
+    homepage := Some(new URL("https://developers.helloreverb.com/swagger/")),
+    startYear := Some(2009),
+    licenses := Seq(("ASL", new URL("http://github.com/wordnik/swagger-async-httpclient/raw/HEAD/LICENSE"))),
+    pomExtra <<= (pomExtra, name, description) {(pom, name, desc) => pom ++ Group(
+      <scm>
+        <url>http://github.com/wordnik/swagger-async-httpclient</url>
+        <connection>scm:git:git://github.com/wordnik/swagger-async-httpclient.git</connection>
+      </scm>
+      <developers>
+        <developer>
+          <id>casualjim</id>
+          <name>Ivan Porto Carrero</name>
+          <url>http://flanders.co.nz/</url>
+        </developer>
+      </developers>
+    )}
+  )
+
   def versionSpecificSourcesIn(c: Configuration) =
     unmanagedSourceDirectories in c <+= (scalaVersion, sourceDirectory in c) {
       case (v, dir) if v startsWith "2.9" => dir / "scala_2.9"
@@ -50,7 +70,6 @@ object build extends Build {
       case v if v startsWith "2.10" => Seq("-language:implicitConversions", "-language:reflectiveCalls")
       case _ => Seq.empty
     }),
-    buildInfoPackage := "com.wordnik.swagger.client.async",
     javacOptions in compile ++= Seq("-target", "1.6", "-source", "1.6", "-Xlint:deprecation"),
     manifestSetting,
     autoCompilerPlugins := true,
@@ -73,7 +92,7 @@ object build extends Build {
   )
 
   val defaultSettings =
-    Defaults.defaultSettings ++ releaseSettings ++ buildInfoConfig ++ projectSettings ++ publishSettings
+    Defaults.defaultSettings ++ releaseSettings ++ buildInfoConfig ++ projectSettings ++ publishSettings ++ mavenCentralFrouFrou
 
 
   lazy val root = Project(
@@ -87,7 +106,7 @@ object build extends Build {
         "org.json4s" %% "json4s-jackson" % "3.2.4",
         "com.googlecode.juniversalchardet" % "juniversalchardet" % "1.0.3",
         "eu.medsea.mimeutil" % "mime-util" % "2.1.3" exclude("org.slf4j", "slf4j-log4j12") exclude("log4j", "log4j"),
-        "com.ning" % "async-http-client" % "1.7.9"
+        "com.ning" % "async-http-client" % "1.7.12"
       ),
       libraryDependencies <+= scalaVersion {
          case "2.9.3" => "org.clapper" % "grizzled-slf4j_2.9.2" % "0.6.10" exclude("org.scala-lang", "scala-library")
