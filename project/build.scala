@@ -84,7 +84,7 @@ object build extends Build {
         "org.scalatra.rl" %% "rl" % "0.4.3",
         "org.slf4j" % "slf4j-api" % "1.7.3",
         "ch.qos.logback" % "logback-classic" % "1.0.10" % "provided",
-        "org.json4s" %% "json4s-jackson" % "3.2.2",
+        "org.json4s" %% "json4s-jackson" % "3.2.4",
         "com.googlecode.juniversalchardet" % "juniversalchardet" % "1.0.3",
         "eu.medsea.mimeutil" % "mime-util" % "2.1.3" exclude("org.slf4j", "slf4j-log4j12") exclude("log4j", "log4j"),
         "com.ning" % "async-http-client" % "1.7.9"
