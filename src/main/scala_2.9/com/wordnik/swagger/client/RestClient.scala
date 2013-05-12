@@ -17,10 +17,11 @@ import akka.util.duration._
 import org.json4s._
 import org.json4s.jackson.JsonMethods
 import java.text.SimpleDateFormat
+import com.wordnik.swagger.client.async.BuildInfo
 
 
 object RestClient {
-  val DefaultUserAgent = "SwaggerClient/1.0"
+  val DefaultUserAgent = "Reverb SwaggerClient / " + BuildInfo.version
 
   private implicit def stringWithExt(s: String) = new {
     def isBlank = s == null || s.trim.isEmpty
@@ -229,7 +230,10 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
       case `GET` | `DELETE` | `HEAD` | `OPTIONS` ⇒ params foreach { case (k, v) ⇒ req addQueryParameter (k, v) }
       case `PUT` | `POST`   | `PATCH`            ⇒ {
         if (!isMultipart)
-          params foreach { case (k, v) ⇒ req addParameter (k, v) }
+          if (req.build().getHeaders.getFirstValue("Content-Type").startsWith("application/x-www-form-urlencoded"))
+            params foreach { case (k, v) ⇒ req addParameter (k, v) }
+          else
+            params foreach { case (k, v) => req addQueryParameter(k, v) }
         else {
           params foreach { case (k, v) => req addBodyPart new StringPart(k, v, charset.name)}
         }

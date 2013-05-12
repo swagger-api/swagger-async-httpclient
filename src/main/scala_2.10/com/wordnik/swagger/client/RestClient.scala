@@ -284,7 +284,7 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
 
 
   private[this] def addBody(method: String, body: String)(req: AsyncHttpClient#BoundRequestBuilder) = {
-    if (allowsBody.contains(method.toUpperCase(Locale.ENGLISH))) req.setBody(if (body.nonBlank) body else "")
+    if (allowsBody.contains(method.toUpperCase(Locale.ENGLISH)) && body.nonBlank) req.setBody(body)
     req
   }
 
