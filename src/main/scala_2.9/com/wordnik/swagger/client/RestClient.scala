@@ -310,6 +310,7 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
     val prt = base.getPort
     val b =
       if (prt > 0 && prt != 80 && prt != 443) "%s://%s:%d".format(base.getScheme, base.getHost, prt)
+      else "%s://%s".format(base.getScheme, base.getHost)
     val p = base.getRawPath + u.getRawPath.blankOption.getOrElse("/")
     val q = u.getRawQuery.blankOption.map("?"+_).getOrElse("")
     val f = u.getRawFragment.blankOption.map("#"+_).getOrElse("")
