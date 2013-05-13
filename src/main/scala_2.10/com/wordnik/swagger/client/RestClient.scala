@@ -179,7 +179,7 @@ object RestClient {
 
 class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
 
-  protected val baseUrl: String = config.baseUrl
+  protected val locator: ServiceLocator = config.locator
   protected val clientConfig: AsyncHttpClientConfig = (new AsyncHttpClientConfig.Builder()
     setUserAgent config.userAgent
     setRequestTimeoutInMs config.idleTimeout.toMillis.toInt
@@ -319,16 +319,21 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
     val u = URI.create(uri).normalize()
     val files = requestFiles(params)
     val isMultipart = isMultipartRequest(method, headers, files)
-
-    (createRequest(method)
-      andThen addTimeout(timeout)
-      andThen addHeaders(headers, files)
-      andThen addCookies
-      andThen addParameters(method, paramsFrom(params), isMultipart)
-      andThen addQuery(u)
-      andThen addBody(method, body)
-      andThen addFiles(files, isMultipart)
-      andThen executeRequest)(requestUri(URI.create(baseUrl).normalize(), u).toASCIIString)
+    locator.pickOneAsUri(config.name, "") flatMap { opt =>
+      if (opt.isEmpty) sys.error("No host could be found")
+      else {
+        val baseUrl = opt.get
+        (createRequest(method)
+              andThen addTimeout(timeout)
+              andThen addHeaders(headers, files)
+              andThen addCookies
+              andThen addParameters(method, paramsFrom(params), isMultipart)
+              andThen addQuery(u)
+              andThen addBody(method, body)
+              andThen addFiles(files, isMultipart)
+              andThen executeRequest)(requestUri(URI.create(baseUrl).normalize(), u).toASCIIString)
+      }
+    }
   }
 
   private[this] def executeRequest(req: AsyncHttpClient#BoundRequestBuilder): Future[RestClientResponse] = {

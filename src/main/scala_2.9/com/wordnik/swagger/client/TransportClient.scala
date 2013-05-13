@@ -24,7 +24,7 @@ trait ClientResponse {
 }
 
 trait TransportClient {
-  protected def baseUrl: String
+  protected def locator: ServiceLocator
   protected def clientConfig: AsyncHttpClientConfig
   implicit def execContext: ExecutionContext
   def open(): Future[Unit] = Promise.successful(()).future

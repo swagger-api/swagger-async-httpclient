@@ -56,15 +56,56 @@ object SwaggerConfig {
       }
     }
   }
-}
-case class SwaggerConfig(
-  baseUrl: String,
-  userAgent: String = RestClient.DefaultUserAgent,
-  dataFormat: SwaggerConfig.DataFormat = DataFormat.Json(DefaultFormats),
-  idleTimeout: Duration = 5 minutes,
-  connectTimeout: Duration = 5 seconds,
-  maxMessageSize: Int = 8912,
-  enableCompression: Boolean = true,
-  followRedirects: Boolean = true,
-  identity: String = "0")
+
+  private case class DefaultSwaggerConfig(
+       locator: ServiceLocator,
+       override val userAgent: String = RestClient.DefaultUserAgent,
+       override val dataFormat: SwaggerConfig.DataFormat = DataFormat.Json(DefaultFormats),
+       override val idleTimeout: Duration = 5.minutes,
+       override val connectTimeout: Duration = 5.seconds,
+       override val maxMessageSize: Int = 8912,
+       override val enableCompression: Boolean = true,
+       override val followRedirects: Boolean = true,
+       override val identity: String = "0",
+       override val name: String = "no-name") extends SwaggerConfig
+
+  def forUrl(
+      baseUrl: String,
+      userAgent: String = RestClient.DefaultUserAgent,
+      dataFormat: SwaggerConfig.DataFormat = DataFormat.Json(DefaultFormats),
+      idleTimeout: Duration = 5.minutes,
+      connectTimeout: Duration = 5.seconds,
+      maxMessageSize: Int = 8912,
+      enableCompression: Boolean = true,
+      followRedirects: Boolean = true,
+      identity: String = "0"): SwaggerConfig =
+    new DefaultSwaggerConfig(BaseUrl(baseUrl), userAgent, dataFormat, idleTimeout, connectTimeout, maxMessageSize, enableCompression, followRedirects, identity)
+
+  def forLocator(
+      locator: ServiceLocator,
+      name: String,
+      userAgent: String = RestClient.DefaultUserAgent,
+      dataFormat: SwaggerConfig.DataFormat = DataFormat.Json(DefaultFormats),
+      idleTimeout: Duration = 5.minutes,
+      connectTimeout: Duration = 5.seconds,
+      maxMessageSize: Int = 8912,
+      enableCompression: Boolean = true,
+      followRedirects: Boolean = true,
+      identity: String = "0"): SwaggerConfig =
+    new DefaultSwaggerConfig(locator, userAgent, dataFormat, idleTimeout, connectTimeout, maxMessageSize, enableCompression, followRedirects, identity, name)
+  }
+
+  trait SwaggerConfig {
+    def locator: ServiceLocator
+    def userAgent: String
+    def dataFormat: SwaggerConfig.DataFormat
+    def idleTimeout: Duration
+    def connectTimeout: Duration
+    def maxMessageSize: Int
+    def enableCompression: Boolean
+    def followRedirects: Boolean
+    def identity: String
+    def name: String
+  }
+
 
