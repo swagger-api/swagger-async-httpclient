@@ -25,6 +25,7 @@ trait ClientResponse {
 trait TransportClient {
   protected def locator: ServiceLocator
   protected def clientConfig: AsyncHttpClientConfig
+  protected def createClient(): AsyncHttpClient
   implicit def execContext: ExecutionContext
   def open(): Future[Unit] = Promise.successful(()).future
   def submit(method: String, uri: String, params: Iterable[(String, Any)], headers: Iterable[(String, String)], body: String, timeout: Duration = 90.seconds): Future[ClientResponse]

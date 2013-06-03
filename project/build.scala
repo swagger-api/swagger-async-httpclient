@@ -117,6 +117,10 @@ object build extends Build {
         case v if v startsWith "2.9" => Seq("com.typesafe.akka" % "akka-actor" % "2.0.5")
         case v => Seq.empty
       },
+      resolvers <++= scalaVersion {
+        case v if v startsWith "2.9" => Seq("Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/")
+        case v => Seq.empty
+      },
       versionSpecificSourcesIn(Compile)
     )
   )

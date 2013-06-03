@@ -4,7 +4,7 @@ import com.ning.http._
 import client._
 import client.{ Cookie => AhcCookie }
 import collection.JavaConverters._
-import java.util.{TimeZone, Date, Locale}
+import java.util.{concurrent, TimeZone, Date, Locale}
 import java.util.concurrent.ConcurrentHashMap
 import io.Codec
 import java.nio.charset.Charset
@@ -18,9 +18,26 @@ import org.json4s.jackson.JsonMethods
 import java.text.SimpleDateFormat
 import scala.util.{Failure, Success}
 import com.wordnik.swagger.client.async.BuildInfo
+import java.util.concurrent.atomic.AtomicLong
+import java.util.{ concurrent => juc }
+import org.jboss.netty.util.{HashedWheelTimer, Timer}
+import org.jboss.netty.channel.socket.nio.{NioWorkerPool, NioClientSocketChannelFactory}
+import com.ning.http.client.providers.netty.NettyAsyncHttpProviderConfig
 
 
 object RestClient {
+
+  private val threadIds = new AtomicLong()
+
+  private lazy val factory = new juc.ThreadFactory {
+    def newThread(runnable: Runnable): Thread = {
+      val thread = new Thread(runnable)
+      thread.setName("bragi-client-thread-" + threadIds.incrementAndGet())
+      thread.setDaemon(true)
+      thread
+    }
+  }
+
   val DefaultUserAgent = s"Reverb SwaggerClient / ${BuildInfo.version}"
 
   private implicit def stringWithExt(s: String) = new {
@@ -174,13 +191,83 @@ object RestClient {
       } yield charset.toUpperCase.replace("CHARSET=", "").trim
   }
 
+  trait Defaults {
+    def builder: AsyncHttpClientConfig.Builder
+    def timer: Timer
+  }
 
+  private object InternalDefaults {
+    /** true if we think we're runing un-forked in an sbt-interactive session */
+    val inTrapExit = (
+      for (group ← Option(Thread.currentThread.getThreadGroup))
+        yield group.getName == "trap.exit").getOrElse(false)
+
+    /** Sets a user agent, no timeout for requests  */
+    object BasicDefaults extends Defaults {
+      lazy val timer = new HashedWheelTimer()
+      def builder = (new AsyncHttpClientConfig.Builder()
+        setAllowPoolingConnection true
+        setRequestTimeoutInMs 45000
+        setCompressionEnabled true
+        setFollowRedirects false
+        setMaximumConnectionsPerHost 200
+        setUserAgent DefaultUserAgent
+        setMaxRequestRetry 0)
+    }
+
+    /** Uses daemon threads and tries to exit cleanly when running in sbt  */
+    object SbtProcessDefaults extends Defaults {
+      def builder = {
+        val shuttingDown = new juc.atomic.AtomicBoolean(false)
+        /** daemon threads that also shut down everything when interrupted! */
+        lazy val interruptThreadFactory = new juc.ThreadFactory {
+          def newThread(runnable: Runnable) = {
+            new Thread(runnable) {
+              setDaemon(true)
+              setName("bragi-client-thread-" + threadIds.incrementAndGet())
+              override def interrupt() {
+                shutdown()
+                super.interrupt()
+              }
+            }
+          }
+        }
+        lazy val nioClientSocketChannelFactory = {
+          val workerCount = 2 * Runtime.getRuntime().availableProcessors()
+          new NioClientSocketChannelFactory(
+            juc.Executors.newCachedThreadPool(interruptThreadFactory),
+            1,
+            new NioWorkerPool(
+              juc.Executors.newCachedThreadPool(interruptThreadFactory),
+              workerCount),
+            timer)
+        }
+
+        def shutdown() {
+          if (shuttingDown.compareAndSet(false, true)) {
+            nioClientSocketChannelFactory.releaseExternalResources()
+          }
+        }
+
+        BasicDefaults.builder.setAsyncHttpClientProviderConfig(
+          new NettyAsyncHttpProviderConfig().addProperty(
+            NettyAsyncHttpProviderConfig.SOCKET_CHANNEL_FACTORY,
+            nioClientSocketChannelFactory))
+      }
+      lazy val timer = new HashedWheelTimer(factory)
+    }
+  }
 }
 
 class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
 
+  import RestClient._
+  protected def underlying: Defaults = {
+    if (InternalDefaults.inTrapExit) InternalDefaults.SbtProcessDefaults
+    else InternalDefaults.BasicDefaults
+  }
   protected val locator: ServiceLocator = config.locator
-  protected val clientConfig: AsyncHttpClientConfig = (new AsyncHttpClientConfig.Builder()
+  protected val clientConfig: AsyncHttpClientConfig = (underlying.builder
     setUserAgent config.userAgent
     setRequestTimeoutInMs config.idleTimeout.toMillis.toInt
     setConnectionTimeoutInMs config.connectTimeout.toMillis.toInt
@@ -188,7 +275,6 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
     setAllowPoolingConnection true                               // enable http keep-alive
     setFollowRedirects config.followRedirects).build()
 
-  import RestClient._
   import StringHttpMethod._
   implicit val execContext = ExecutionContext.fromExecutorService(clientConfig.executorService())
 
@@ -198,17 +284,19 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
 
   private[this] val cookies = new CookieJar(Map.empty)
 
-  private[this] val underlying = new AsyncHttpClient(clientConfig)
+  protected def createClient() = new AsyncHttpClient(clientConfig)
+
+  private[this] val client = createClient()
 
   private[this] def createRequest(method: String): String ⇒ AsyncHttpClient#BoundRequestBuilder = {
     method.toUpperCase(Locale.ENGLISH) match {
-      case `GET`     ⇒ underlying.prepareGet _
-      case `POST`    ⇒ underlying.preparePost _
-      case `PUT`     ⇒ underlying.preparePut _
-      case `DELETE`  ⇒ underlying.prepareDelete _
-      case `HEAD`    ⇒ underlying.prepareHead _
-      case `OPTIONS` ⇒ underlying.prepareOptions _
-      case `CONNECT` ⇒ underlying.prepareConnect _
+      case `GET`     ⇒ client.prepareGet _
+      case `POST`    ⇒ client.preparePost _
+      case `PUT`     ⇒ client.preparePut _
+      case `DELETE`  ⇒ client.prepareDelete _
+      case `HEAD`    ⇒ client.prepareHead _
+      case `OPTIONS` ⇒ client.prepareOptions _
+      case `CONNECT` ⇒ client.prepareConnect _
     }
   }
 
@@ -358,5 +446,5 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
     Map("Content-Type" -> value)
   }
 
-  def close() = Future { underlying.close() }
+  def close() = Future { client.close() }
 }
