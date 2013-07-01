@@ -80,15 +80,15 @@ object build extends Build {
     base = file("."),
     settings = defaultSettings ++ Seq(
       libraryDependencies ++= Seq(
-        "org.scalatra.rl" %% "rl" % "0.4.3",
-        "org.slf4j" % "slf4j-api" % "1.7.3",
-        "ch.qos.logback" % "logback-classic" % "1.0.10" % "provided",
-        "org.json4s" %% "json4s-jackson" % "3.2.2",
+        "org.scalatra.rl" %% "rl" % "0.4.7",
+        "org.slf4j" % "slf4j-api" % "1.7.5",
+        "ch.qos.logback" % "logback-classic" % "1.0.13" % "provided",
+        "org.json4s" %% "json4s-jackson" % "3.2.4",
         "com.googlecode.juniversalchardet" % "juniversalchardet" % "1.0.3",
         "eu.medsea.mimeutil" % "mime-util" % "2.1.3" exclude("org.slf4j", "slf4j-log4j12") exclude("log4j", "log4j"),
-        "com.ning" % "async-http-client" % "1.7.9",
-        "com.wordnik" % "discovery-service-sdk_2.9.2" % "1.4.3" exclude("com.wordnik", "utils-common_2.9.2"),
-        "com.wordnik" % "utils-common_2.9.2" % "1.7.1"
+        "com.ning" % "async-http-client" % "1.7.17",
+        "com.wordnik" %% "discovery-service-sdk" % "2.0.0",
+        "com.wordnik" %% "utils-common" % "2.0.0"
       ),
 
       libraryDependencies <+= scalaVersion {
