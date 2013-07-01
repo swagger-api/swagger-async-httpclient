@@ -22,9 +22,11 @@ object build extends Build {
 
   val publishSettings: Seq[Setting[_]] = Seq(
     publishMavenStyle := true,
-    publishTo := Some(Resolver.url("CI Server", url("https://ci.aws.wordnik.com/artifactory/m2-releases/"))),
+    publishTo := Some(Resolver.url("Artifactory Realm", url("https://ci.aws.wordnik.com/artifactory/m2-releases/"))),
     publishArtifact in Test := false,
-    pomIncludeRepository := { x => false }
+    pomIncludeRepository := { x => false },
+    credentials ++= Seq(
+      Credentials("Artifactory Realm", "ci.aws.wordnik.com", "mavenuser", "DEEaffe987a"))
   )
 
   def versionSpecificSourcesIn(c: Configuration) =
@@ -37,9 +39,9 @@ object build extends Build {
     organization := "com.wordnik.swagger",
     name := "swagger-async-httpclient",
     scalaVersion := "2.9.2",
-    resolvers += "CI Server" at "https://ci.aws.wordnik.com/artifactory/m2-releases/",
+    resolvers += "Artifactory Realm" at "https://ci.aws.wordnik.com/artifactory/m2-releases/",
     resolvers += "Typesafe releases" at "http://repo.typesafe.com/typesafe/releases/",
-    crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.9.3", "2.10.0"),
+    crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.10.0"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-optimize", "-Xcheckinit", "-encoding", "utf8", "-P:continuations:enable"),
     scalacOptions in Compile <++= scalaVersion map ({
       case v if v startsWith "2.10" => Seq("-language:implicitConversions", "-language:reflectiveCalls")
@@ -60,7 +62,7 @@ object build extends Build {
       System.gc()
     },
     credentials ++= Seq(
-      Credentials("CI Server", "ci.aws.wordnik.com", "mavenuser", "DEEaffe987a"))
+      Credentials("Artifactory Realm", "ci.aws.wordnik.com", "mavenuser", "DEEaffe987a"))
   )
 
   val buildInfoConfig: Seq[Setting[_]] = buildInfoSettings ++ Seq(
