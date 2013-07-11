@@ -55,7 +55,7 @@ trait ServiceLocator {
 
 case class BaseUrl(url: String)(implicit protected val executionContext: ExecutionContext = ExecutionContext.global) extends ServiceLocator {
   private[this] val uri = URI.create(url)
-  private[this] val withoutScheme = uri.getAuthority + uri.getPath
+  private[this] val withoutScheme = uri.getAuthority + stripTrailingSlash(uri.getPath)
   private[this] val withScheme = uri.getScheme + "://" + withoutScheme
 
   def locate(name: String): Future[Set[String]] = Future.successful(Set(withoutScheme))
@@ -65,4 +65,6 @@ case class BaseUrl(url: String)(implicit protected val executionContext: Executi
   def locateAsUris(name: String, path: String): Future[Set[String]] = Future.successful(Set(withScheme))
 
   def pickOneAsUri(name: String, path: String, picker: HostPicker): Future[Option[String]] = Future.successful(Some(withScheme))
+
+  private def stripTrailingSlash(s: String): String = if (s endsWith "/") s.dropRight(1) else s
 }
