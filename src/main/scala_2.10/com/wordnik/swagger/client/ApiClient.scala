@@ -1,13 +1,12 @@
 package com.wordnik.swagger.client
 
 import scala.concurrent.{Future, Promise}
-import org.json4s.jackson.JsonMethods
-import util.{Failure, Success, Try}
+import scala.util.{Failure, Success, Try}
 
-abstract class ApiClient(client: TransportClient, config: SwaggerConfig) extends JsonMethods {
+abstract class ApiClient(client: TransportClient, config: SwaggerConfig){
   protected implicit val execContext = client.execContext
 
-  protected def addFmt(pth: String) = pth.replace("{format}", "json")
+  protected def addFmt(pth: String) = pth.replace("{format}", config.contentType.name)
 
   protected def process[T](fn: => T): Future[T]  = {
     val fut = Promise[T]()

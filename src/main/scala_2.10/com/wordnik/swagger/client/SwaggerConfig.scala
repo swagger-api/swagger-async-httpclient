@@ -6,6 +6,7 @@ import org.json4s.jackson.JsonMethods
 import org.json4s._
 import org.json4s.Xml._
 import io.Codec
+import java.net.URI
 
 object SwaggerConfig {
 
@@ -19,10 +20,11 @@ object SwaggerConfig {
        override val enableCompression: Boolean = true,
        override val followRedirects: Boolean = true,
        override val identity: String = "0",
-       override val name: String = "no-name") extends SwaggerConfig
+       override val name: String = "no-name",
+       override val contentType: ContentType = ContentType("json", "application/json;charset=utf-8")) extends SwaggerConfig
 
   def forUrl(
-      baseUrl: String,
+      baseUrl: URI,
       userAgent: String = RestClient.DefaultUserAgent,
       idleTimeout: Duration = 5.minutes,
       connectTimeout: Duration = 5.seconds,
@@ -45,6 +47,7 @@ object SwaggerConfig {
     new DefaultSwaggerConfig(locator, userAgent, idleTimeout, connectTimeout, maxMessageSize, enableCompression, followRedirects, identity, name)
   }
 
+  case class ContentType(name: String, headerValue: String)
   trait SwaggerConfig {
     def locator: ServiceLocator
     def userAgent: String
@@ -55,6 +58,7 @@ object SwaggerConfig {
     def followRedirects: Boolean
     def identity: String
     def name: String
+    def contentType: ContentType
   }
 
 

@@ -53,18 +53,12 @@ trait ServiceLocator {
     Await.result(pickOneAsUri(name, path, picker), atMost)
 }
 
-case class BaseUrl(url: String)(implicit protected val executionContext: ExecutionContext = ExecutionContext.global) extends ServiceLocator {
-  private[this] val uri = URI.create(url)
-  private[this] val withoutScheme = uri.getHost
-  private[this] val withScheme = uri.getScheme + "://" + uri.getAuthority + stripTrailingSlash(uri.getPath)
-
+case class BaseUrl(url: URI)(implicit protected val executionContext: ExecutionContext = ExecutionContext.global) extends ServiceLocator {
+  private[this] val withoutScheme = url.getHost
+  private[this] val withScheme = url.getScheme + "://" + url.getAuthority + stripTrailingSlash(url.getPath)
   def locate(name: String): Future[Set[String]] = Future.successful(Set(withoutScheme))
-
   def pickOne(name: String, picker: HostPicker): Future[Option[String]] = Future.successful(Some(withoutScheme))
-
   def locateAsUris(name: String, path: String): Future[Set[String]] = Future.successful(Set(withScheme))
-
   def pickOneAsUri(name: String, path: String, picker: HostPicker): Future[Option[String]] = Future.successful(Some(withScheme))
-
-  private def stripTrailingSlash(s: String): String = if (s endsWith "/") s.dropRight(1) else s
+  private def stripTrailingSlash(s: String): String = if (s endsWith "/") s.substring(0, s.length - 1) else s
 }

@@ -438,7 +438,7 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
   }
 
   private[this] def defaultWriteContentType(files: Iterable[(String, File)]) = {
-    val value = if (files.nonEmpty) "multipart/form-data" else "application/json;charset=utf-8"
+    val value = if (files.nonEmpty) "multipart/form-data" else config.contentType.headerValue
     Map("Content-Type" -> value)
   }
 
