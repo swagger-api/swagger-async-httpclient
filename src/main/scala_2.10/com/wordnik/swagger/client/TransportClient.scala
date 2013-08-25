@@ -69,6 +69,33 @@ object ClientResponseReaders {
 
 }
 
+@implicitNotFound(
+  "No RequestWriter found for type ${T}. Try to implement an implicit RequestWriter for this type, or perhaps you're just missing an import like RequestWriters._."
+)
+trait RequestWriter[T] {
+  def write(body: T): String
+}
+object RequestWriters {
+  private def wrtr[T](fn: T => String) = new RequestWriter[T] {
+    def write(body: T): String = fn(body)
+  }
+
+  implicit val StringWriter: RequestWriter[String] = wrtr(identity)
+  implicit val JValueWriter: RequestWriter[JValue] = wrtr(jackson.compactJson)
+  implicit def OptionWriter[T](implicit writer: RequestWriter[T]): RequestWriter[Option[T]] =
+    wrtr(o => o map writer.write getOrElse "")
+
+  object JsonTypeClassWriter {
+    implicit def JsonFormatsWriter[T](implicit jsonWriter: org.json4s.Writer[T]): RequestWriter[T] =
+      wrtr(bd => JValueWriter write jsonWriter.write(bd))
+  }
+
+  object Json4sFormatsWriter {
+    implicit def JsonFormatsWriter[T](implicit formats: Formats, mf: Manifest[T]): RequestWriter[T] =
+      wrtr(bd => JValueWriter write Extraction.decompose(bd))
+  }
+}
+
 trait TransportClient {
   protected def locator: ServiceLocator
   protected def clientConfig: AsyncHttpClientConfig
