@@ -22,13 +22,20 @@ object build extends Build {
   }
 
   val publishSettings: Seq[Setting[_]] = Seq(
+//    publishTo <<= (version) { version: String =>
+//      val res =
+//        if (version.trim.endsWith("SNAPSHOT"))
+//          Opts.resolver.sonatypeSnapshots
+//        else
+//          Opts.resolver.sonatypeStaging
+//      Some(res)
+//    },
     publishTo <<= (version) { version: String =>
-      val res =
-        if (version.trim.endsWith("SNAPSHOT"))
-          Opts.resolver.sonatypeSnapshots
-        else
-          Opts.resolver.sonatypeStaging
-      Some(res)
+      val artifactory = "https://ci.aws.wordnik.com/artifactory/m2-"
+      if (version.trim.endsWith("SNAPSHOT"))
+        Some("snapshots" at artifactory + "snapshots")
+      else
+        Some("releases"  at artifactory + "releases")
     },
     publishMavenStyle := true,
     publishArtifact in Test := false,
