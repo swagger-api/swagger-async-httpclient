@@ -7,6 +7,7 @@ import scala.concurrent.duration._
 import java.net.URI
 import org.json4s._
 import scala.util.Try
+import scala.annotation.implicitNotFound
 
 
 trait ClientResponse {
@@ -22,6 +23,9 @@ trait ClientResponse {
   def body: String
 }
 
+@implicitNotFound(
+  "No ClientResponseReader found for type ${T}. Try to implement an implicit ClientResponseReader for this type, or perhaps you're just missing an import like ClientResponseReader._."
+)
 trait ClientResponseReader[T] {
   def read(resp: ClientResponse): T
 }

@@ -12,8 +12,7 @@ abstract class ApiClient(client: TransportClient, config: SwaggerConfig){
     val fut = Promise[T]()
     try {
       val r = fn
-      (r: @unchecked) match {
-        case tr: Try[T] => fut.complete(tr)
+      r match {
         case t: Throwable => fut.complete(Failure(t))
         case s => fut.complete(Success(s))
       }
