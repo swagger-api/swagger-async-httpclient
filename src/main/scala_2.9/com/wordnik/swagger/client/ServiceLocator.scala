@@ -62,8 +62,9 @@ object GlobalContext {
 
 case class BaseUrl(url: String)(implicit protected val executionContext: ExecutionContext = GlobalContext.executionContext) extends ServiceLocator {
   private[this] val uri = URI.create(url)
-  private[this] val withoutScheme = uri.getAuthority + uri.getPath
-  private[this] val withScheme = uri.getScheme + "://" + withoutScheme
+  private[this] val withoutScheme = uri.getHost
+  private[this] val withScheme = uri.getScheme + "://" + uri.getAuthority + stripTrailingSlash(uri.getPath)
+
 
   def locate(name: String): Future[Set[String]] = Promise.successful(Set(withoutScheme)).future
 
@@ -72,4 +73,6 @@ case class BaseUrl(url: String)(implicit protected val executionContext: Executi
   def locateAsUris(name: String, path: String): Future[Set[String]] = Promise.successful(Set(withScheme)).future
 
   def pickOneAsUri(name: String, path: String, picker: HostPicker): Future[Option[String]] = Promise.successful(Some(withScheme)).future
+
+  private[this] def stripTrailingSlash(s: String): String = if (s endsWith "/") s.dropRight(1) else s
 }

@@ -32,7 +32,7 @@ object RestClient {
   private lazy val factory = new juc.ThreadFactory {
     def newThread(runnable: Runnable): Thread = {
       val thread = new Thread(runnable)
-      thread.setName("bragi-client-thread-" + threadIds.incrementAndGet())
+      thread.setName("swagger-client-thread-" + threadIds.incrementAndGet())
       thread.setDaemon(true)
       thread
     }
@@ -431,18 +431,14 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
       override def onThrowable(t: Throwable) = promise.complete(Failure(t))
       def onCompleted(response: Response) = {
         logger.debug(s"Got response [${response.getStatusCode} ${response.getStatusText}}] for request to ${req.build().getUrl}.\n$response")
-        if (response.getStatusCode / 100 == 2)
-          promise.complete(Success(new RestClientResponse(response)))
-        else {
-          promise.complete(Failure(new ApiException(response.getStatusCode, response.getStatusText, response.getResponseBody(Codec.UTF8.name))))
-        }
+        promise.success(new RestClientResponse(response))
       }
     })
     promise.future
   }
 
   private[this] def defaultWriteContentType(files: Iterable[(String, File)]) = {
-    val value = if (files.nonEmpty) "multipart/form-data" else config.dataFormat.contentType
+    val value = if (files.nonEmpty) "multipart/form-data" else "application/json;charset=utf-8"
     Map("Content-Type" -> value)
   }
 

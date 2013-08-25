@@ -1,3 +1,3 @@
 package com.wordnik.swagger.client
 
-class ApiException(val code: Int, message: String, val body: String) extends RuntimeException(message)
+class ApiException(resp: ClientResponse) extends RuntimeException(resp.statusText)

@@ -6,15 +6,15 @@ import util.{Failure, Success, Try}
 
 abstract class ApiClient(client: TransportClient, config: SwaggerConfig) extends JsonMethods {
   protected implicit val execContext = client.execContext
-  protected val ser = config.dataFormat
 
-  protected def addFmt(pth: String) = pth.replace("{format}", ser.name)
+  protected def addFmt(pth: String) = pth.replace("{format}", "json")
 
   protected def process[T](fn: => T): Future[T]  = {
     val fut = Promise[T]()
     try {
       val r = fn
-      r match {
+      (r: @unchecked) match {
+        case tr: Try[T] => fut.complete(tr)
         case t: Throwable => fut.complete(Failure(t))
         case s => fut.complete(Success(s))
       }
