@@ -400,7 +400,7 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
     val p = base.getRawPath + u.getRawPath.blankOption.getOrElse("/")
     val q = u.getRawQuery.blankOption.map("?"+_).getOrElse("")
     val f = u.getRawFragment.blankOption.map("#"+_).getOrElse("")
-    URI.create(b+p.urlEncode+q+f)
+    URI.create(b+p+q+f)
   }
 
   def submit(method: String, uri: String, params: Iterable[(String, Any)], headers: Iterable[(String, String)], body: String = "", timeout: Duration = 90.seconds): Future[RestClientResponse] = {
