@@ -10,7 +10,7 @@ import io.Codec
 import java.nio.charset.Charset
 import java.io.File
 import java.net.URI
-import rl.MapQueryString
+import rl.{UrlCodingUtils, MapQueryString}
 import scala.concurrent.{Promise, ExecutionContext, Future}
 import scala.concurrent.duration._
 import org.json4s.JsonAST.JValue
@@ -23,7 +23,7 @@ import java.util.{ concurrent => juc }
 import org.jboss.netty.util.{HashedWheelTimer, Timer}
 import org.jboss.netty.channel.socket.nio.{NioWorkerPool, NioClientSocketChannelFactory}
 import com.ning.http.client.providers.netty.NettyAsyncHttpProviderConfig
-
+import rl.Imports._
 
 object RestClient {
 
@@ -400,11 +400,11 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
     val p = base.getRawPath + u.getRawPath.blankOption.getOrElse("/")
     val q = u.getRawQuery.blankOption.map("?"+_).getOrElse("")
     val f = u.getRawFragment.blankOption.map("#"+_).getOrElse("")
-    URI.create(b+p+q+f)
+    URI.create(b+p.urlEncode+q+f)
   }
 
   def submit(method: String, uri: String, params: Iterable[(String, Any)], headers: Iterable[(String, String)], body: String = "", timeout: Duration = 90.seconds): Future[RestClientResponse] = {
-    val u = URI.create(uri).normalize()
+    val u = URI.create(if (UrlCodingUtils.needsUrlEncoding(uri)) uri.urlEncode else uri).normalize()
     val files = requestFiles(params)
     val isMultipart = isMultipartRequest(method, headers, files)
     locator.pickOneAsUri(config.name, "") flatMap { opt =>
