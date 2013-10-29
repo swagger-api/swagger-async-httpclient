@@ -408,7 +408,7 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
     val files = requestFiles(params)
     val isMultipart = isMultipartRequest(method, headers, files)
     locator.pickOneAsUri(config.name, "") flatMap { opt =>
-      if (opt.isEmpty) sys.error("No host could be found")
+      if (opt.isEmpty) sys.error("No host could be found for %s".format(config.name))
       else {
         val baseUrl = opt.get
         (createRequest(method)
