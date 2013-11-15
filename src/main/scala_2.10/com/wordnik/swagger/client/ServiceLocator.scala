@@ -4,6 +4,7 @@ import scala.concurrent.{Await, Future, ExecutionContext}
 import scala.concurrent.duration._
 import language.postfixOps
 import java.net.URI
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * A trait for a load balancing strategy.
@@ -32,25 +33,70 @@ object RandomHostPicker extends HostPicker {
   }
 }
 
+final object GlobalRoundRobinHostPicker extends RoundRobinHostPicker
+
+sealed class RoundRobinHostPicker extends HostPicker {
+  // Start at -1 so that the first call to incrementAndGet returns 0
+  private[this] val counter = new AtomicLong(-1)
+
+  def apply(hosts: Set[String])(implicit executionContext: ExecutionContext): Future[Option[String]] = {
+    Future.successful {
+      val sortedHosts = hosts.toVector.sorted
+
+      if (sortedHosts.length == 0) {
+        None
+      } else {
+        // This cast is okay because vector.length is an Int.
+        val index = (counter.incrementAndGet() % sortedHosts.length).toInt
+        Some(sortedHosts(index))
+      }
+    }
+  }
+}
+
 trait ServiceLocator {
   implicit protected def executionContext: ExecutionContext
   def locate(name: String): Future[Set[String]]
-  def locateBlocking(name: String, atMost: FiniteDuration = 20 seconds): Set[String] =
+
+  def locateBlocking(name: String, atMost: FiniteDuration = 20 seconds): Set[String] = {
     Await.result(locate(name), atMost)
+  }
 
-  def pickOne(name: String, picker: HostPicker = RandomHostPicker): Future[Option[String]]
+  def pickOne(
+    name: String,
+    picker: HostPicker = GlobalRoundRobinHostPicker): Future[Option[String]]
 
-  def pickOneBlocking(name: String, picker: HostPicker = RandomHostPicker, atMost: FiniteDuration = 20 seconds): Option[String] =
+  def pickOneBlocking(
+    name: String,
+    picker: HostPicker = GlobalRoundRobinHostPicker,
+    atMost: FiniteDuration = 20 seconds): Option[String] = {
+
     Await.result(pickOne(name, picker), atMost)
+  }
 
   def locateAsUris(name: String, path: String): Future[Set[String]]
-  def locateAsUrisBlocking(name: String, path: String, atMost: FiniteDuration = 20 seconds): Set[String] =
+
+  def locateAsUrisBlocking(
+    name: String,
+    path: String,
+    atMost: FiniteDuration = 20 seconds): Set[String] = {
+
     Await.result(locateAsUris(name, path), atMost)
+  }
 
-  def pickOneAsUri(name: String, path: String, picker: HostPicker = RandomHostPicker): Future[Option[String]]
+  def pickOneAsUri(
+    name: String,
+    path: String,
+    picker: HostPicker = GlobalRoundRobinHostPicker): Future[Option[String]]
 
-  def pickOneAsUriBlocking(name: String, path: String, picker: HostPicker = RandomHostPicker, atMost: FiniteDuration = 20 seconds): Option[String] =
+  def pickOneAsUriBlocking(
+    name: String,
+    path: String,
+    picker: HostPicker = GlobalRoundRobinHostPicker,
+    atMost: FiniteDuration = 20 seconds): Option[String] = {
+
     Await.result(pickOneAsUri(name, path, picker), atMost)
+  }
 }
 
 case class BaseUrl(url: URI)(implicit protected val executionContext: ExecutionContext = ExecutionContext.global) extends ServiceLocator {
