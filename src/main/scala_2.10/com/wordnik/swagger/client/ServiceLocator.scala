@@ -17,27 +17,29 @@ trait HostPicker {
    * @param hosts The hosts to pick from
    * @return A Future with an Option that contains the host if there was one.
    */
-  def apply(hosts: Set[String])(implicit executionContext: ExecutionContext): Future[Option[String]]
+  def apply(hosts: Set[String], serviceName: Option[String])(implicit executionContext: ExecutionContext): Future[Option[String]]
 }
 
 object HeadHostPicker extends HostPicker {
-  def apply(hosts: Set[String])(implicit executionContext: ExecutionContext): Future[Option[String]] = {
+  def apply(hosts: Set[String], serviceName: Option[String] = None)(implicit executionContext: ExecutionContext): Future[Option[String]] = {
     Future.successful(hosts.headOption)
   }
 }
 
 object RandomHostPicker extends HostPicker {
   private[this] val rand = new util.Random()
-  def apply(hosts: Set[String])(implicit executionContext: ExecutionContext): Future[Option[String]] = {
+  def apply(hosts: Set[String], serviceName: Option[String] = None)(implicit executionContext: ExecutionContext): Future[Option[String]] = {
     Future.successful(if (hosts.nonEmpty) Some(hosts.toList(rand.nextInt(hosts.size))) else None)
   }
 }
 
-final class RoundRobinHostPicker extends HostPicker {
+object GlobalRoundRobinHostPicker extends RoundRobinHostPicker
+
+sealed class RoundRobinHostPicker extends HostPicker {
   // Start at -1 so that the first call to incrementAndGet returns 0
   private[this] val counter = new AtomicLong(-1)
 
-  def apply(hosts: Set[String])(implicit executionContext: ExecutionContext): Future[Option[String]] = {
+  def apply(hosts: Set[String], serviceName: Option[String] = None)(implicit executionContext: ExecutionContext): Future[Option[String]] = {
     Future.successful {
       val sortedHosts = hosts.toVector.sorted
 
