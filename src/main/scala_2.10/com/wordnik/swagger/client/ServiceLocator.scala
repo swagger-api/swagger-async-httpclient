@@ -2,6 +2,7 @@ package com.wordnik.swagger.client
 
 import scala.concurrent.{Await, Future, ExecutionContext}
 import scala.concurrent.duration._
+import scala.collection.concurrent.TrieMap
 import language.postfixOps
 import java.net.URI
 import java.util.concurrent.atomic.AtomicLong
@@ -33,9 +34,24 @@ object RandomHostPicker extends HostPicker {
   }
 }
 
-object GlobalRoundRobinHostPicker extends RoundRobinHostPicker
+object GlobalRoundRobinHostPicker extends HostPicker {
+  private[this] val pickers = TrieMap.empty[String, RoundRobinHostPicker]
+  private[this] val default = new RoundRobinHostPicker
 
-sealed class RoundRobinHostPicker extends HostPicker {
+  def apply(
+    hosts: Set[String],
+    serviceName: Option[String])(
+      implicit executionContext: ExecutionContext): Future[Option[String]] = {
+
+      val roundRobinPicker = serviceName map { name =>
+        pickers.getOrElseUpdate(name, new RoundRobinHostPicker)
+      } getOrElse(default)
+
+      roundRobinPicker(hosts, None)
+  }
+}
+
+final class RoundRobinHostPicker extends HostPicker {
   // Start at -1 so that the first call to incrementAndGet returns 0
   private[this] val counter = new AtomicLong(-1)
 
