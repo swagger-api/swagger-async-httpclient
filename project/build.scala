@@ -87,7 +87,7 @@ object build extends Build {
         "com.googlecode.juniversalchardet" % "juniversalchardet" % "1.0.3",
         "eu.medsea.mimeutil" % "mime-util" % "2.1.3" exclude("org.slf4j", "slf4j-log4j12") exclude("log4j", "log4j"),
         "com.ning" % "async-http-client" % "1.7.17",
-        "com.wordnik" %% "discovery-service-sdk" % "2.0.0",
+        "com.wordnik" %% "discovery-service-sdk" % "2.0.1",
         "com.wordnik" %% "utils-common" % "2.0.0"
       ),
 
