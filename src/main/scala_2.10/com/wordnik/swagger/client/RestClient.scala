@@ -176,9 +176,10 @@ object RestClient {
 
 }
 
-class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
+class RestClient(config: SwaggerConfig, isDiscoveryEnabled:Boolean=true, serviceIp:String="localhost") extends TransportClient with Logging {
 
   protected val baseUrl: String = config.baseUrl
+  protected val serviceLocator = if (isDiscoveryEnabled)new ServiceLocator else new IPBasedServiceLocator(serviceIp)
   protected val clientConfig: AsyncHttpClientConfig = (new AsyncHttpClientConfig.Builder()
     setUserAgent config.userAgent
     setRequestTimeoutInMs config.idleTimeout.toMillis.toInt
@@ -323,7 +324,11 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
       andThen addQuery(u)
       andThen addBody(method, body)
       andThen addFiles(files, isMultipart)
-      andThen executeRequest)(requestUri(URI.create(baseUrl).normalize(), u).toASCIIString)
+      andThen executeRequest)(requestUri(URI.create(getServiceUrl).normalize(), u).toASCIIString)
+  }
+
+  private[this] def getServiceUrl() = {
+     "http://"+ serviceLocator.getServerInstance(config.serviceName) + ":" + config.servicePort + config.basePath
   }
 
   private[this] def executeRequest(req: AsyncHttpClient#BoundRequestBuilder): Future[RestClientResponse] = {
