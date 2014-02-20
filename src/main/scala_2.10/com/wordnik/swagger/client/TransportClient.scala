@@ -103,5 +103,5 @@ trait TransportClient {
   implicit def execContext: ExecutionContext
   def open(): Future[Unit] = Promise.successful(()).future
   def submit(method: String, uri: String, params: Iterable[(String, Any)], headers: Iterable[(String, String)], body: String, timeout: Duration = 90.seconds): Future[ClientResponse]
-  def close(): Future[Unit]
+  def close(): Unit
 }

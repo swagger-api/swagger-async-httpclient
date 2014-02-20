@@ -442,5 +442,5 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
     Map("Content-Type" -> value)
   }
 
-  def close() = Future { client.close() }
+  def close() = client.closeAsynchronously()
 }
