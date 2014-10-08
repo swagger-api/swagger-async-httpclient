@@ -2,7 +2,7 @@ package com.wordnik.swagger.client
 
 import com.ning.http._
 import client._
-import client.{ Cookie => AhcCookie }
+import com.ning.http.client.cookie.{ Cookie => AhcCookie }
 import collection.JavaConverters._
 import java.util.{concurrent, TimeZone, Date, Locale}
 import java.util.concurrent.ConcurrentHashMap
@@ -345,14 +345,16 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
 
   private[this] def addCookies(req: AsyncHttpClient#BoundRequestBuilder) = {
     cookies foreach { cookie =>
-      val ahcCookie = new AhcCookie(
-        cookie.cookieOptions.domain,
+      val ahcCookie = AhcCookie.newValidCookie(
         cookie.name,
         cookie.value,
+        cookie.cookieOptions.domain,
+        cookie.value,
         cookie.cookieOptions.path,
+        0,
         cookie.cookieOptions.maxAge,
         cookie.cookieOptions.secure,
-        cookie.cookieOptions.version)
+        cookie.cookieOptions.httpOnly)
       req.addCookie(ahcCookie)
     }
     req

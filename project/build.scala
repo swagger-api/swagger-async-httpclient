@@ -22,20 +22,13 @@ object build extends Build {
   }
 
   val publishSettings: Seq[Setting[_]] = Seq(
-//    publishTo <<= (version) { version: String =>
-//      val res =
-//        if (version.trim.endsWith("SNAPSHOT"))
-//          Opts.resolver.sonatypeSnapshots
-//        else
-//          Opts.resolver.sonatypeStaging
-//      Some(res)
-//    },
     publishTo <<= (version) { version: String =>
-      val artifactory = "https://ci.aws.wordnik.com/artifactory/m2-"
-      if (version.trim.endsWith("SNAPSHOT"))
-        Some("snapshots" at artifactory + "snapshots")
-      else
-        Some("releases"  at artifactory + "releases")
+      val res =
+        if (version.trim.endsWith("SNAPSHOT"))
+          Opts.resolver.sonatypeSnapshots
+        else
+          Opts.resolver.sonatypeStaging
+      Some(res)
     },
     publishMavenStyle := true,
     publishArtifact in Test := false,
@@ -65,13 +58,14 @@ object build extends Build {
     unmanagedSourceDirectories in c <+= (scalaVersion, sourceDirectory in c) {
       case (v, dir) if v startsWith "2.9" => dir / "scala_2.9"
       case (v, dir) if v startsWith "2.10" => dir / "scala_2.10"
+      case (v, dir) if v startsWith "2.11" => dir / "scala_2.10"
     }
 
   val projectSettings = Seq(
     organization := "com.wordnik.swagger",
     name := "swagger-async-httpclient",
-    scalaVersion := "2.10.0",
-    crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.9.3", "2.10.0"),
+    scalaVersion := "2.10.4",
+    crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.9.3", "2.10.4", "2.11.2"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-optimize", "-Xcheckinit", "-encoding", "utf8", "-P:continuations:enable"),
     scalacOptions in Compile <++= scalaVersion map ({
       case v if v startsWith "2.10" => Seq("-language:implicitConversions", "-language:reflectiveCalls")
@@ -107,18 +101,18 @@ object build extends Build {
     base = file("."),
     settings = defaultSettings ++ Seq(
       libraryDependencies ++= Seq(
-        "org.scalatra.rl" %% "rl" % "0.4.8",
-        "org.slf4j" % "slf4j-api" % "1.7.5",
-        "ch.qos.logback" % "logback-classic" % "1.0.13" % "provided",
-        "org.json4s" %% "json4s-jackson" % "3.2.5",
+        "org.scalatra.rl" %% "rl" % "0.4.10",
+        "org.slf4j" % "slf4j-api" % "1.7.7",
+        "ch.qos.logback" % "logback-classic" % "1.1.2" % "provided",
+        "org.json4s" %% "json4s-jackson" % "3.2.10",
         "com.googlecode.juniversalchardet" % "juniversalchardet" % "1.0.3",
         "eu.medsea.mimeutil" % "mime-util" % "2.1.3" exclude("org.slf4j", "slf4j-log4j12") exclude("log4j", "log4j"),
-        "com.ning" % "async-http-client" % "1.7.19"
+        "com.ning" % "async-http-client" % "1.8.14"
       ),
       libraryDependencies <+= scalaVersion {
          case "2.9.3" => "org.clapper" % "grizzled-slf4j_2.9.2" % "0.6.10" exclude("org.scala-lang", "scala-library")
          case v if v startsWith "2.9" => "org.clapper" %% "grizzled-slf4j" % "0.6.10"
-         case v => "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
+         case v => "com.typesafe" %% "scalalogging-slf4j" % "1.1.0"
       },
       libraryDependencies <++= scalaVersion {
         case v if v startsWith "2.9" => Seq("com.typesafe.akka" % "akka-actor" % "2.0.5")
