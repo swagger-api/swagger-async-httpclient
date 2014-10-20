@@ -51,6 +51,54 @@ public final class LocatableService {
         this.pingPath = pingPath;
     }
 
+    public String[] getHosts() {
+        return hosts;
+    }
+
+    public void setHosts(String[] hosts) {
+        this.hosts = hosts;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
+    }
+
+    public String[] getTags() {
+        return tags;
+    }
+
+    public void setTags(String[] tags) {
+        this.tags = tags;
+    }
+
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
+
+    public String getPingPath() {
+        return pingPath;
+    }
+
+    public void setPingPath(String pingPath) {
+        this.pingPath = pingPath;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
