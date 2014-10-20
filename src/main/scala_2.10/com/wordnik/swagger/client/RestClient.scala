@@ -1,29 +1,27 @@
 package com.wordnik.swagger.client
 
-import com.ning.http._
-import client._
-import client.{ Cookie => AhcCookie }
-import collection.JavaConverters._
-import java.util.{concurrent, TimeZone, Date, Locale}
-import java.util.concurrent.ConcurrentHashMap
-import io.Codec
-import java.nio.charset.Charset
 import java.io.File
 import java.net.URI
-import rl.{UrlCodingUtils, MapQueryString}
-import scala.concurrent.{Promise, ExecutionContext, Future}
-import scala.concurrent.duration._
-import org.json4s.JsonAST.JValue
-import org.json4s.jackson.JsonMethods
+import java.nio.charset.Charset
 import java.text.SimpleDateFormat
-import scala.util.{Failure, Success}
-import com.wordnik.swagger.client.async.BuildInfo
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
-import java.util.{ concurrent => juc }
-import org.jboss.netty.util.{HashedWheelTimer, Timer}
-import org.jboss.netty.channel.socket.nio.{NioWorkerPool, NioClientSocketChannelFactory}
+import java.util.{Date, Locale, TimeZone, concurrent => juc}
+
+import com.ning.http.client._
+import com.ning.http.client.cookie.{Cookie => AhcCookie}
 import com.ning.http.client.providers.netty.NettyAsyncHttpProviderConfig
+import com.wordnik.swagger.client.async.BuildInfo
+import org.jboss.netty.channel.socket.nio.{NioClientSocketChannelFactory, NioWorkerPool}
+import org.jboss.netty.util.{HashedWheelTimer, Timer}
 import rl.Imports._
+import rl.{MapQueryString, UrlCodingUtils}
+
+import scala.collection.JavaConverters._
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.io.Codec
+import scala.util.Failure
 
 object RestClient {
 
@@ -261,7 +259,7 @@ object RestClient {
 
 class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
 
-  import RestClient._
+  import com.wordnik.swagger.client.RestClient._
   protected def underlying: Defaults = {
     if (InternalDefaults.inTrapExit) InternalDefaults.SbtProcessDefaults
     else InternalDefaults.BasicDefaults
@@ -275,7 +273,7 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
     setAllowPoolingConnection true                               // enable http keep-alive
     setFollowRedirects config.followRedirects).build()
 
-  import StringHttpMethod._
+  import com.wordnik.swagger.client.StringHttpMethod._
   implicit val execContext = ExecutionContext.fromExecutorService(clientConfig.executorService())
 
   private[this] val mimes = new Mimes with Logging {
@@ -345,14 +343,16 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
 
   private[this] def addCookies(req: AsyncHttpClient#BoundRequestBuilder) = {
     cookies foreach { cookie =>
-      val ahcCookie = new AhcCookie(
-        cookie.cookieOptions.domain,
+      val ahcCookie = AhcCookie.newValidCookie(
         cookie.name,
         cookie.value,
+        cookie.cookieOptions.domain,
+        cookie.value,
         cookie.cookieOptions.path,
+        -1,
         cookie.cookieOptions.maxAge,
         cookie.cookieOptions.secure,
-        cookie.cookieOptions.version)
+        cookie.cookieOptions.httpOnly)
       req.addCookie(ahcCookie)
     }
     req
