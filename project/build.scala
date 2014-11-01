@@ -102,9 +102,10 @@ object build extends Build {
     settings = defaultSettings ++ Seq(
       libraryDependencies ++= Seq(
         "org.scalatra.rl" %% "rl" % "0.4.10",
+        "com.google.guava" % "guava" % "18.0",
         "org.slf4j" % "slf4j-api" % "1.7.7",
         "ch.qos.logback" % "logback-classic" % "1.1.2" % "provided",
-        "org.json4s" %% "json4s-jackson" % "3.2.10",
+        "org.json4s" %% "json4s-jackson" % "3.2.11",
         "com.googlecode.juniversalchardet" % "juniversalchardet" % "1.0.3",
         "eu.medsea.mimeutil" % "mime-util" % "2.1.3" exclude("org.slf4j", "slf4j-log4j12") exclude("log4j", "log4j"),
         "com.ning" % "async-http-client" % "1.8.14"

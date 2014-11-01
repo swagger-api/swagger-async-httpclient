@@ -1,14 +1,13 @@
 package com.wordnik.swagger.client
 
-import java.util
-import java.util.concurrent
-
-import scala.concurrent.{Await, Future, ExecutionContext}
-import scala.concurrent.duration._
-import scala.collection.concurrent.TrieMap
-import language.postfixOps
 import java.net.URI
+import java.util
 import java.util.concurrent.atomic.AtomicLong
+
+import scala.collection.concurrent.TrieMap
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.language.postfixOps
 
 /**
  * A trait for a load balancing strategy.
@@ -126,6 +125,5 @@ case class BaseUrl(url: URI)(implicit protected val executionContext: ExecutionC
   def locateAsUris(name: String, path: String): Future[Set[String]] = Future.successful(Set(withScheme))
   def pickOneAsUri(name: String, path: String, picker: HostPicker): Future[Option[String]] = Future.successful(Some(withScheme))
   private def stripTrailingSlash(s: String): String = if (s endsWith "/") s.substring(0, s.length - 1) else s
-
-
 }
+

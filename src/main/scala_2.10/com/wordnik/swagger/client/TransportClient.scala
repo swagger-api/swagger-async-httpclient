@@ -1,13 +1,14 @@
 package com.wordnik.swagger.client
 
-import com.ning.http._
-import client._
-import scala.concurrent.{Promise, ExecutionContext, Future}
-import scala.concurrent.duration._
 import java.net.URI
+
+import com.ning.http.client._
 import org.json4s._
-import scala.util.Try
+
 import scala.annotation.implicitNotFound
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 
 trait ClientResponse {
@@ -96,12 +97,11 @@ object RequestWriters {
   }
 }
 
-trait TransportClient {
+trait TransportClient extends AutoCloseable {
   protected def locator: ServiceLocator
   protected def clientConfig: AsyncHttpClientConfig
   protected def createClient(): AsyncHttpClient
   implicit def execContext: ExecutionContext
-  def open(): Future[Unit] = Promise.successful(()).future
+  def open(): Future[Unit] = Future.successful(())
   def submit(method: String, uri: String, params: Iterable[(String, Any)], headers: Iterable[(String, String)], body: String, timeout: Duration = 90.seconds): Future[ClientResponse]
-  def close(): Unit
 }

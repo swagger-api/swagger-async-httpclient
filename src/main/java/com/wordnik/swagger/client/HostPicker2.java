@@ -6,5 +6,5 @@ package com.wordnik.swagger.client;
  * Time: 8:42 PM
  */
 public interface HostPicker2 {
-    public LocatableService[] sort(LocatableService[] services, String serviceName);
+    public LocatableService[] pick(LocatableService[] services, String serviceName);
 }

@@ -10,7 +10,7 @@ import com.wordnik.swagger.client.LocatableService;
  */
 public class PassThrough implements HostPicker2 {
     @Override
-    public LocatableService[] sort(LocatableService[] services, String serviceName) {
+    public LocatableService[] pick(LocatableService[] services, String serviceName) {
         return services;
     }
 }
