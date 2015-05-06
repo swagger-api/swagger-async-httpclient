@@ -22,20 +22,13 @@ object build extends Build {
   }
 
   val publishSettings: Seq[Setting[_]] = Seq(
-//    publishTo <<= (version) { version: String =>
-//      val res =
-//        if (version.trim.endsWith("SNAPSHOT"))
-//          Opts.resolver.sonatypeSnapshots
-//        else
-//          Opts.resolver.sonatypeStaging
-//      Some(res)
-//    },
     publishTo <<= (version) { version: String =>
-      val artifactory = "https://ci.aws.wordnik.com/artifactory/m2-"
-      if (version.trim.endsWith("SNAPSHOT"))
-        Some("snapshots" at artifactory + "snapshots")
-      else
-        Some("releases"  at artifactory + "releases")
+      val res =
+        if (version.trim.endsWith("SNAPSHOT"))
+          Opts.resolver.sonatypeSnapshots
+        else
+          Opts.resolver.sonatypeStaging
+      Some(res)
     },
     publishMavenStyle := true,
     publishArtifact in Test := false,
@@ -43,13 +36,13 @@ object build extends Build {
   )
 
   val mavenCentralFrouFrou = Seq(
-    homepage := Some(new URL("https://developers.helloreverb.com/swagger/")),
+    homepage := Some(new URL("http://swagger.io")),
     startYear := Some(2009),
-    licenses := Seq(("ASL", new URL("http://github.com/wordnik/swagger-async-httpclient/raw/HEAD/LICENSE"))),
+    licenses := Seq(("ASL", new URL("http://github.com/swagger-api/swagger-async-httpclient/raw/HEAD/LICENSE"))),
     pomExtra <<= (pomExtra, name, description) {(pom, name, desc) => pom ++ Group(
       <scm>
-        <url>http://github.com/wordnik/swagger-async-httpclient</url>
-        <connection>scm:git:git://github.com/wordnik/swagger-async-httpclient.git</connection>
+        <url>http://github.com/swagger-api/swagger-async-httpclient</url>
+        <connection>scm:git:git://github.com/swagger-api/swagger-async-httpclient.git</connection>
       </scm>
       <developers>
         <developer>
