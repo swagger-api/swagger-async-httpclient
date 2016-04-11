@@ -1,4 +1,4 @@
-package com.wordnik.swagger.client
+package io.swagger.client
 
 import akka.dispatch.{Future, Promise}
 import org.json4s.jackson.JsonMethods

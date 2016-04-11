@@ -1,4 +1,4 @@
-package com.wordnik.swagger.client
+package io.swagger.client
 
 import scala.concurrent.{Await, Future, ExecutionContext}
 import scala.concurrent.duration._

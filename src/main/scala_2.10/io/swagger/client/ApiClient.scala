@@ -1,4 +1,4 @@
-package com.wordnik.swagger.client
+package io.swagger.client
 
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success, Try}

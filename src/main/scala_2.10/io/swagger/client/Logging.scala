@@ -1,4 +1,4 @@
-package com.wordnik.swagger.client
+package io.swagger.client
 
 import com.typesafe.scalalogging.slf4j.Logger
 import org.slf4j.LoggerFactory

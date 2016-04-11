@@ -62,7 +62,7 @@ object build extends Build {
     }
 
   val projectSettings = Seq(
-    organization := "com.wordnik.swagger",
+    organization := "io.swagger",
     name := "swagger-async-httpclient",
     scalaVersion := "2.10.4",
     crossScalaVersions := Seq("2.10.4", "2.11.2"),

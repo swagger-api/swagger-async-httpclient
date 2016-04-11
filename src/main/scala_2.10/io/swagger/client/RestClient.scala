@@ -1,4 +1,4 @@
-package com.wordnik.swagger.client
+package io.swagger.client
 
 import java.io.File
 import java.net.URI
@@ -11,7 +11,7 @@ import java.util.{Date, Locale, TimeZone, concurrent => juc}
 import com.ning.http.client._
 import com.ning.http.client.cookie.{Cookie => AhcCookie}
 import com.ning.http.client.providers.netty.NettyAsyncHttpProviderConfig
-import com.wordnik.swagger.client.async.BuildInfo
+import io.swagger.client.async.BuildInfo
 import org.jboss.netty.channel.socket.nio.{NioClientSocketChannelFactory, NioWorkerPool}
 import org.jboss.netty.util.{HashedWheelTimer, Timer}
 import rl.Imports._
@@ -259,7 +259,7 @@ object RestClient {
 
 class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
 
-  import com.wordnik.swagger.client.RestClient._
+  import io.swagger.client.RestClient._
   protected def underlying: Defaults = {
     if (InternalDefaults.inTrapExit) InternalDefaults.SbtProcessDefaults
     else InternalDefaults.BasicDefaults
@@ -273,7 +273,7 @@ class RestClient(config: SwaggerConfig) extends TransportClient with Logging {
     setAllowPoolingConnection true                               // enable http keep-alive
     setFollowRedirects config.followRedirects).build()
 
-  import com.wordnik.swagger.client.StringHttpMethod._
+  import io.swagger.client.StringHttpMethod._
   implicit val execContext = ExecutionContext.fromExecutorService(clientConfig.executorService())
 
   private[this] val mimes = new Mimes with Logging {

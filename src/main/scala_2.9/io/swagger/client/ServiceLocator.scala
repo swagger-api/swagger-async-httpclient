@@ -1,4 +1,4 @@
-package com.wordnik.swagger.client
+package io.swagger.client
 
 import akka.dispatch.{Promise, Await, Future, ExecutionContext}
 import akka.util.duration._

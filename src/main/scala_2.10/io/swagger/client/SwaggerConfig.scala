@@ -1,11 +1,10 @@
-package com.wordnik.swagger.client
+package io.swagger.client
 
 import scala.concurrent.duration._
 import java.io.StringWriter
 import org.json4s.jackson.JsonMethods
 import org.json4s._
 import org.json4s.Xml._
-import io.Codec
 import java.net.URI
 
 object SwaggerConfig {

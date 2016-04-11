@@ -8,7 +8,7 @@
     </encoder>
   </appender>
 
-  <logger name="com.wordnik.swagger" level="debug" />
+  <logger name="io.swagger" level="debug" />
   <root level="info">
     <appender-ref ref="STDOUT" />
   </root>

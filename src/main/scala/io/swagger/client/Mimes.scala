@@ -1,4 +1,4 @@
-package com.wordnik.swagger.client
+package io.swagger.client
 
 import eu.medsea.util.EncodingGuesser
 import eu.medsea.mimeutil.{ MimeType, MimeUtil2 }

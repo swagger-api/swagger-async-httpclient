@@ -1,4 +1,4 @@
-package com.wordnik.swagger.client
+package io.swagger.client
 
 object StringHttpMethod {
   val GET = "GET"

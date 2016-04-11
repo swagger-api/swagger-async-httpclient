@@ -1,4 +1,4 @@
-package com.wordnik.swagger.client
+package io.swagger.client
 
 import akka.util.Duration
 import akka.util.duration._

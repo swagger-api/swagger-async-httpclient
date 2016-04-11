@@ -1,4 +1,4 @@
-package com.wordnik.swagger.client
+package io.swagger.client
 
 import com.ning.http._
 import client._
@@ -17,7 +17,7 @@ import akka.util.duration._
 import org.json4s._
 import org.json4s.jackson.JsonMethods
 import java.text.SimpleDateFormat
-import com.wordnik.swagger.client.async.BuildInfo
+import io.swagger.client.async.BuildInfo
 import java.util.concurrent.atomic.AtomicLong
 import java.util.{ concurrent => juc }
 import org.jboss.netty.util.{HashedWheelTimer, Timer}
