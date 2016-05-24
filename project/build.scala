@@ -58,14 +58,14 @@ object build extends Build {
     unmanagedSourceDirectories in c <+= (scalaVersion, sourceDirectory in c) {
       case (v, dir) if v startsWith "2.9" => dir / "scala_2.9"
       case (v, dir) if v startsWith "2.10" => dir / "scala_2.10"
-      case (v, dir) if v startsWith "2.11" => dir / "scala_2.10"
+      case (v, dir) if v startsWith "2.11" => dir / "scala_2.11"
     }
 
   val projectSettings = Seq(
     organization := "io.swagger",
     name := "swagger-async-httpclient",
-    scalaVersion := "2.10.4",
-    crossScalaVersions := Seq("2.10.4", "2.11.2"),
+    scalaVersion := "2.11.7",
+    crossScalaVersions := Seq("2.10.4", "2.11.7"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-optimize", "-Xcheckinit", "-encoding", "utf8"),
     scalacOptions <++= scalaVersion map {
       case v if v.startsWith("2.9") || v.startsWith("2.10") => Seq("-P:continuations:enable")
@@ -119,7 +119,8 @@ object build extends Build {
       libraryDependencies <+= scalaVersion {
          case "2.9.3" => "org.clapper" % "grizzled-slf4j_2.9.2" % "0.6.10" exclude("org.scala-lang", "scala-library")
          case v if v startsWith "2.9" => "org.clapper" %% "grizzled-slf4j" % "0.6.10"
-         case v => "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2"
+         case v if v startsWith "2.10" => "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2"
+	       case v => "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
       },
       libraryDependencies <++= scalaVersion {
         case v if v startsWith "2.9" => Seq("com.typesafe.akka" % "akka-actor" % "2.0.5")
